@@ -6,12 +6,12 @@ Wait = 18
 class Tetromino
   def initialize
     @pat = Array.new(4)
-    pats = [["1111"], ["11", "11"], ["011", "110"], ["110", "011"],
-            ["100", "111"], ["001", "111"], ["010", "111"]]
+    # 問題:１
+    pats = [["11", "11"], ["011", "110"], ["110", "011"]]
     @num = rand(1..pats.size)
     @pat[0] = pats.map {|pt| pt.map {|st| st.chars.map(&:to_i)} }[@num - 1]
     (1..3).each do |i|
-      @pat[i] = @pat[i - 1].reverse.transpose    #右回転
+      @pat[i] = @pat[i - 1].reverse.transpose #右回転させる
     end
     
     @dir = 0
@@ -45,13 +45,17 @@ class Field
   S = BlockMargin * 2 + BlockSide
   W = Margin * 2 + S * Width
   H = Margin * 2 + S * Height
-  
+  attr_accessor :score
+
   Color = ["#158FAC", "#F1F101", "#2FFF43", "#DF0F0F",
            "#5858FF", "#FFB950", "#FF98F3"]
+
+  #使える色
+  # navy blue aqua teal olive green lime yellow orange red brown fuchsia purple maroon white silver gray black
   
   def initialize
-    set width: W, height: H, title: "Tetris Ruby2D"
-    Rectangle.new x: 0, y: 0, width: W, height: H, color: "#ABF8FC", z: 0
+    set width: W, height: H, title: "Tetris"
+    Rectangle.new x: 0, y: 0, width: W, height: H, color: "gray", z: 0
     Rectangle.new x: Margin, y: Margin,
                   width: W - 2 * Margin, height: H - 2 * Margin,
                   color: "black", z: 0
@@ -150,22 +154,20 @@ collision_flag = false        #これ以上テトロミノが落下できなけ�
 command = nil
 wait = Wait
 
-on :key_down do |event|
-  command = case event.key
-            when "left"  then "left"
-            when "right" then "right"
-            when "up"    then "rotate"
-            when "down"  then "down"
-            else nil
-            end
-end
+$score = Text.new(
+  0,
+  x: 250, y: 0,
+  style: 'bold',
+  size: 20,
+  color: 'black',
+  z: 10
+)
 
-on :controller_button_down do |event|
-  command = case event.button
-            when :left  then "left"
-            when :right then "right"
-            when :a     then "rotate"
-            when :down  then "down"
+# 問題:2
+on :key_down do |event|
+  p event.key
+  command = case event.key
+            when "down"  then "down"
             else nil
             end
 end
@@ -185,7 +187,7 @@ update do
   end
   
   collision_flag = f.one_down if (t % wait).zero? && !collision_flag    #落下できるならひとつ落下
-  
+
   #消せる行があるか
   if (deleting_continues || collision_flag) && (t % 30).zero?
     deleting_continues = f.delete_blocks    #消せる行があれば一行消す
